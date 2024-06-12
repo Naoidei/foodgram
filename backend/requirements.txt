@@ -1,0 +1,9 @@
+Django==3.2.3
+djangorestframework==3.12.4
+django-cors-headers
+django-filter==23.1
+django-urlshortner
+djoser==2.1.0
+gunicorn==20.1.0
+Pillow==9.0.0
+python-dotenv==1.0.1
