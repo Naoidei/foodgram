@@ -6,4 +6,5 @@ django-urlshortner
 djoser==2.1.0
 gunicorn==20.1.0
 Pillow==9.0.0
+psycopg2-binary==2.9.3 
 python-dotenv==1.0.1
