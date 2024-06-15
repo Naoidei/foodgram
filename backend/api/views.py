@@ -178,4 +178,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         long_url = request.build_absolute_uri()
         prefix = 'https://foodgrammm.ru/s/'
         short_link = shorten_url(long_url, is_permanent=True)
-        return Response({'short-link': prefix + short_link})
+        return Response({'short-link': prefix + short_link,
+                         'long-link': long_url})
