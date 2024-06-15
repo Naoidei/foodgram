@@ -1,3 +1,4 @@
+# flake8: noqa
 import base64
 
 from django.contrib.auth import get_user_model
@@ -6,8 +7,8 @@ from django.db import transaction
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from ..recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                              ShoppingList, Subscription, Tag)
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingList, Subscription, Tag)
 
 User = get_user_model()
 

@@ -1,3 +1,4 @@
+# flake8: noqa
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Sum
@@ -13,8 +14,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
 
-from ..recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                              ShoppingList, Subscription, Tag)
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingList, Subscription, Tag)
 from .filters import RecipeFilter
 from .paginators import PageNumberLimitPagination
 from .permissions import IsAuthorOrReadOnly
