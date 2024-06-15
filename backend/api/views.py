@@ -13,9 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
 
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingList, Subscription, Tag)
-
+from ..recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                              ShoppingList, Subscription, Tag)
 from .filters import RecipeFilter
 from .paginators import PageNumberLimitPagination
 from .permissions import IsAuthorOrReadOnly
