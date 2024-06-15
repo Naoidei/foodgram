@@ -175,7 +175,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
         get_object_or_404(Recipe, id=pk)
-        long_url = request.build_absolute_uri()
+        long_url = f'https://foodgrammm.ru/recipes/{pk}/'
         prefix = 'https://foodgrammm.ru/s/'
         short_link = shorten_url(long_url, is_permanent=True)
         return Response({'short-link': prefix + short_link,
