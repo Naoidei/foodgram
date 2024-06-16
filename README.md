@@ -1,10 +1,15 @@
-# Kittygram
+# Foodgram
 
-Блог для котиков и их хозяев, с возможностью публикации фото и достижений питомцев.
-Для публикации необохдима регистрация.
+[Foodgram](https://foodgrammm.ru/) - Блог для публикации рецептов, с возможностью добавления в избранное,
+подписками на авторов и выгрузкой списка покупок.
+Для публикации необходима регистрация.
 
-![kittygram_final](https://github.com/Naoidei/kittygram_final/actions/workflows/main.yml/badge.svg)
+![foodrgam](https://github.com/Naoidei/foodgram/actions/workflows/main.yml/badge.svg)
 
+## API
+
+Спецификация к API расположена по адресу :
+https://foodgrammm.ru/api/docs/redoc.html
 
 ## Деплой
 
@@ -53,6 +58,7 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 
 - Python
 - Django
+- DRF
 - Nginx
 - Docker
 - JavaScript
