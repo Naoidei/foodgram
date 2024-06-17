@@ -1,4 +1,3 @@
-# flake8: noqa
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Sum
@@ -14,16 +13,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from urlshortner.utils import shorten_url
 
+from api.filters import RecipeFilter
+from api.paginators import PageNumberLimitPagination
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (AvatarSerializer, FavoriteSerializer,
+                             IngredientSerializer, RecipeGetSerializer,
+                             RecipePostSerializer, ShoppingListSerializer,
+                             SubscriptionGetSerializer,
+                             SubscriptionPostSerializer, TagSerializer)
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingList, Subscription, Tag)
-from .filters import RecipeFilter
-from .paginators import PageNumberLimitPagination
-from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer, FavoriteSerializer,
-                          IngredientSerializer, RecipeGetSerializer,
-                          RecipePostSerializer, ShoppingListSerializer,
-                          SubscriptionGetSerializer,
-                          SubscriptionPostSerializer, TagSerializer)
+                            ShoppingList, Tag)
 
 User = get_user_model()
 
@@ -63,9 +62,7 @@ class FoodgramUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        instance = Subscription.objects.filter(
-            user=request.user, author=author
-        )
+        instance = request.user.subscriptions.filter(author=author)
         if instance.exists():
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -99,13 +96,12 @@ class FoodgramUserViewSet(UserViewSet):
         serializer = AvatarSerializer(
             data=request.data, context={'request': request}
         )
-        if serializer.is_valid():
-            request.user.avatar = serializer.validated_data['avatar']
-            request.user.save()
-            return Response(
-                {'avatar': request.user.avatar.url}, status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        request.user.avatar = serializer.validated_data['avatar']
+        request.user.save()
+        return Response(
+            {'avatar': request.user.avatar.url}, status=status.HTTP_200_OK
+        )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

@@ -1,4 +1,3 @@
-# flake8: noqa
 import base64
 
 from django.contrib.auth import get_user_model
@@ -7,6 +6,7 @@ from django.db import transaction
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
+from recipes.constants import MAX_VALUE, MIN_VALUE
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingList, Subscription, Tag)
 
@@ -32,9 +32,9 @@ class FoodgramUserSerializer(UserSerializer):
                   'avatar', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         return (
-            Subscription.objects.filter(user=user.id, author=obj.id).exists()
+            user.subscriptions.filter(author=obj.id).exists()
             and user.is_authenticated
         )
 
@@ -75,7 +75,7 @@ class IngredientInRecipePostSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(min_value=MIN_VALUE, max_value=MAX_VALUE)
 
     class Meta:
         model = IngredientInRecipe
@@ -107,16 +107,16 @@ class RecipeGetSerializer(serializers.ModelSerializer):
                   'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         return (
-            Favorite.objects.filter(user=user.id, recipe=obj.id).exists()
+            user.favorites.filter(recipe=obj.id).exists()
             and user.is_authenticated
         )
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         return (
-            ShoppingList.objects.filter(user=user.id, recipe=obj.id).exists()
+            user.shopping_list.filter(recipe=obj.id).exists()
             and user.is_authenticated
         )
 
@@ -127,7 +127,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
                                               queryset=Tag.objects.all())
     author = FoodgramUserSerializer(read_only=True)
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField(min_value=1)
+    cooking_time = serializers.IntegerField(min_value=MIN_VALUE,
+                                            max_value=MAX_VALUE)
 
     class Meta:
         model = Recipe
@@ -180,7 +181,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
         instance.cooking_time = validated_data.get(
             'cooking_time', instance.cooking_time
         )
-        IngredientInRecipe.objects.filter(recipe=instance).delete()
+        instance.ingridients_in_recipe.delete()
         self.create_ingredients(instance, ingredients_data)
         instance.tags.set(tags_data)
         instance.save()
@@ -217,9 +218,9 @@ class SubscriptionGetSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         return (
-            Subscription.objects.filter(user=user.id, author=obj.id).exists()
+            user.subscriptions.filter(author=obj.id).exists()
             and user.is_authenticated
         )
 
@@ -242,13 +243,13 @@ class SubscriptionPostSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, data):
-        if Subscription.objects.filter(
-            user=data['user'], author=data['author']
-        ).exists():
+        user = data['user']
+        author = data['author']
+        if user.subscriptions.filter(author=author).exists():
             raise serializers.ValidationError(
-                {'errors': f'Вы уже подписаны на {data["author"]}!'}
+                {'errors': f'Вы уже подписаны на {author}!'}
             )
-        if data['user'] == data['author']:
+        if user == author:
             raise serializers.ValidationError(
                 {'errors': 'Вы не можете подписаться на себя!'}
             )
@@ -268,9 +269,11 @@ class BaseSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, data):
-        if self.Meta.model.objects.filter(
-            user=data['user'], recipe=data['recipe']
-        ).exists():
+        user = data['user']
+        related_queryset = (user.favorites if self.Meta.model == Favorite
+                            else user.shopping_list
+                            )
+        if related_queryset.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError(
                 {'errors': f'Рецепт уже добавлен в '
                  f'{self.Meta.model._meta.verbose_name}!'}

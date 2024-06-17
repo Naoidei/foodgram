@@ -1,12 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from .constants import (MAX_LENGTH_MAIL, MAX_LENGTH_NAME,
+                        MAX_LENGTH_RECIPE_NAME, MAX_LENGTH_TAG,
+                        MAX_LENGTH_UNIT, MAX_LENGTH_USER_NAME, MAX_VALUE,
+                        MIN_VALUE)
 
 
 class FoodgramUser(AbstractUser):
-    email = models.EmailField('@', max_length=254, unique=True)
-    first_name = models.CharField('Имя', max_length=150)
-    last_name = models.CharField('Фамилия', max_length=150)
+    email = models.EmailField('@', max_length=MAX_LENGTH_MAIL, unique=True)
+    first_name = models.CharField('Имя', max_length=MAX_LENGTH_USER_NAME)
+    last_name = models.CharField('Фамилия', max_length=MAX_LENGTH_USER_NAME)
     avatar = models.ImageField('Аватар',
                                upload_to='users/',
                                null=True,
@@ -24,24 +30,27 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name = models.CharField('Название', max_length=128)
-    measurement_unit = models.CharField('Единица измерения', max_length=64)
+    name = models.CharField('Название', max_length=MAX_LENGTH_NAME)
+    measurement_unit = models.CharField('Единица измерения',
+                                        max_length=MAX_LENGTH_UNIT)
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
 
 
 class Tag(models.Model):
-    name = models.CharField('Тег', max_length=32, unique=True)
-    slug = models.SlugField('Слаг', max_length=32, unique=True)
+    name = models.CharField('Тег', max_length=MAX_LENGTH_TAG, unique=True)
+    slug = models.SlugField('Слаг', max_length=MAX_LENGTH_TAG, unique=True)
 
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -55,9 +64,12 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(Tag, verbose_name='Тег')
     image = models.ImageField('Изображение', upload_to='recipes/')
-    name = models.CharField('Название', max_length=256)
+    name = models.CharField('Название', max_length=MAX_LENGTH_RECIPE_NAME)
     text = models.TextField('Описание')
-    cooking_time = models.PositiveSmallIntegerField('Время приготовления')
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления',
+        validators=[MinValueValidator(MIN_VALUE), MaxValueValidator(MAX_VALUE)]
+    )
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
@@ -86,12 +98,16 @@ class IngredientInRecipe(models.Model):
         verbose_name='Ингредиент',
         on_delete=models.CASCADE
     )
-    amount = models.PositiveSmallIntegerField('Количество')
+    amount = models.PositiveSmallIntegerField(
+        'Количество',
+        validators=[MinValueValidator(MIN_VALUE), MaxValueValidator(MAX_VALUE)]
+    )
 
     class Meta:
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
         default_related_name = 'ingridients_in_recipe'
+        ordering = ('recipe',)
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
@@ -149,6 +165,7 @@ class BaseRelation(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ('user',)
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_%(class)s'
