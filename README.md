@@ -67,4 +67,4 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/col
 
 ## Автор
 
-- Игорь Михайлищук (Naoidei)
+- Киселева Наталия (Naoidei)
